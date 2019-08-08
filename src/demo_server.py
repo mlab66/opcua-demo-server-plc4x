@@ -20,19 +20,6 @@ def calc_temp(current_temp, count, modifier):
         temp = current_temp + gauss(0, 1) + 20.0
     return temp
 
-def calc_motor_position(current_pos, positiv_direction):
-    if (positiv_direction and current_pos < 180):
-        current_pos += 1
-    elif (positiv_direction and current_pos >= 180):
-        positiv_direction = False
-        current_pos -= 1
-    elif not positiv_direction and current_pos > 0 and current_pos < 180:
-        current_pos -= 1
-    elif not positiv_direction and current_pos <= 0:
-        positiv_direction = True
-        current_pos += 1
-    return current_pos
-
 async def main():
     # setup our server
     server = Server()
@@ -73,28 +60,35 @@ async def main():
         current_pos = 0
         positive_direction = True
         while True:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)
             count += 1
             now = datetime.now().isoformat()
             temp = calc_temp(pre_stage_temp, count, 200)
-            temp2 = calc_temp(mid_stage_temp, count, 100)
-            temp3 = calc_temp(post_stage_temp, count, 300)
+            temp2 = calc_temp(mid_stage_temp, count, 1000)
+            temp3 = calc_temp(post_stage_temp, count, 500)
 
             await pre_stage.set_value(temp)
             await mid_stage.set_value(temp2)
             await post_stage.set_value(temp3)
             await ts.set_value(now)
 
+            step_size = 1
+
+            # every 500 steps, delay:
+            if count % 500 == 0:
+                _logger.info("Delay Robot Arm")
+                step_size = 0
+
             if positive_direction and current_pos < 180:
-                current_pos += 1
+                current_pos += step_size
             elif positive_direction and current_pos >= 180:
                 positive_direction = False
-                current_pos -= 1
+                current_pos -= step_size
             elif not positive_direction and 0 < current_pos < 180:
-                current_pos -= 1
+                current_pos -= step_size
             elif not positive_direction and current_pos <= 0:
                 positive_direction = True
-                current_pos += 1
+                current_pos += step_size
 
             await ts_arm.set_value(now)
             await motor_degree_var.set_value(current_pos)
