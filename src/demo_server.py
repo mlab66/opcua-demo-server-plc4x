@@ -20,6 +20,18 @@ def calc_temp(current_temp, count, modifier):
         temp = current_temp + gauss(0, 1) + 20.0
     return temp
 
+def calc_motor_position(current_pos, positiv_direction):
+    if (positiv_direction and current_pos < 180):
+        current_pos += 1
+    elif (positiv_direction and current_pos >= 180):
+        positiv_direction = False
+        current_pos -= 1
+    elif not positiv_direction and current_pos > 0 and current_pos < 180:
+        current_pos -= 1
+    elif not positiv_direction and current_pos <= 0:
+        positiv_direction = True
+        current_pos += 1
+    return current_pos
 
 async def main():
     # setup our server
@@ -38,17 +50,28 @@ async def main():
     # populating our address space
     _logger.info('Starting server!')
 
-    band1 = await objects.add_object(idx, "Band1")
+    belt1 = await objects.add_object(idx, "Convoyer Belt1")
+    arm = await objects.add_object(idx, "Robot Arm")
+
     pre_stage_temp = 25.0
     mid_stage_temp = 65.0
     post_stage_temp = 90.0
-    pre_stage = await band1.add_variable(idx, "PreStage", pre_stage_temp)
-    mid_stage = await band1.add_variable(idx, "MidStage", mid_stage_temp)
-    post_stage = await band1.add_variable(idx, "PostStage", post_stage_temp)
 
-    ts = await band1.add_variable(idx, "TimeStamp", datetime.now().isoformat())
+    # motor has a possible degree from 0 to 180
+    motor_degree = 0
+
+    pre_stage = await belt1.add_variable(idx, "PreStage", pre_stage_temp)
+    mid_stage = await belt1.add_variable(idx, "MidStage", mid_stage_temp)
+    post_stage = await belt1.add_variable(idx, "PostStage", post_stage_temp)
+
+    motor_degree_var = await arm.add_variable(idx, "Motor", motor_degree)
+
+    ts = await belt1.add_variable(idx, "TimeStamp", datetime.now().isoformat())
+    ts_arm = await arm.add_variable(idx, "TimeStamp", datetime.now().isoformat())
     async with server:
         count = 0
+        current_pos = 0
+        positive_direction = True
         while True:
             await asyncio.sleep(0.5)
             count += 1
@@ -61,7 +84,22 @@ async def main():
             await mid_stage.set_value(temp2)
             await post_stage.set_value(temp3)
             await ts.set_value(now)
+
+            if positive_direction and current_pos < 180:
+                current_pos += 1
+            elif positive_direction and current_pos >= 180:
+                positive_direction = False
+                current_pos -= 1
+            elif not positive_direction and 0 < current_pos < 180:
+                current_pos -= 1
+            elif not positive_direction and current_pos <= 0:
+                positive_direction = True
+                current_pos += 1
+
+            await ts_arm.set_value(now)
+            await motor_degree_var.set_value(current_pos)
             _logger.info('Set value of %s to %.1f', temp, count)
+            _logger.info('Arm Position of %s to %.1f', str(positive_direction), current_pos)
 
 
 if __name__ == '__main__':
