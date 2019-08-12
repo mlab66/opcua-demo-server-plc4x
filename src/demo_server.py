@@ -95,6 +95,9 @@ async def main():
             _logger.info('Set value of %s to %.1f', temp, count)
             _logger.info('Arm Position of %s to %.1f', str(positive_direction), current_pos)
 
+            if count == 10000:
+                count = 0
+
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
