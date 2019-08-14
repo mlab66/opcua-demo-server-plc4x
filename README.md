@@ -20,6 +20,8 @@ The demo server emits temperature sensor data with periodically induced peaks.
 or with Docker:
 
     docker build -t Demo-Server:latest .
+    
+    docker run -p 4840:4840 --network bridge demo_server:latest
 
 ### License
 

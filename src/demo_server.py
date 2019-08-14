@@ -5,6 +5,7 @@ import asyncio
 from asyncua import ua, Server
 from random import gauss
 from random import seed
+from random import randrange
 from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +24,7 @@ def calc_temp(current_temp, count, modifier):
 async def main():
     # setup our server
     server = Server()
-    endpoint_url = "opc.tcp://0.0.0.0:4840/freeopcua/server/"
+    endpoint_url = "opc.tcp://127.0.0.1:4840/freeopcua/server/"
     if len(sys.argv) > 1:
         endpoint_url = sys.argv[1]
     print("Use Server Endpoint: " + endpoint_url)
@@ -62,10 +63,11 @@ async def main():
         while True:
             await asyncio.sleep(0.1)
             count += 1
+            randomizer = randrange(1, 10)
             now = datetime.now().isoformat()
-            temp = calc_temp(pre_stage_temp, count, 200)
-            temp2 = calc_temp(mid_stage_temp, count, 1000)
-            temp3 = calc_temp(post_stage_temp, count, 500)
+            temp = calc_temp(pre_stage_temp, count, randomizer * 200)
+            temp2 = calc_temp(mid_stage_temp, count, randomizer * 1000)
+            temp3 = calc_temp(post_stage_temp, count, randomizer * 500)
 
             await pre_stage.set_value(temp)
             await mid_stage.set_value(temp2)
@@ -75,7 +77,7 @@ async def main():
             step_size = 1
 
             # every 500 steps, delay:
-            if count % 500 == 0:
+            if count % (randomizer * 500) == 0:
                 _logger.info("Delay Robot Arm")
                 step_size = 0
 
