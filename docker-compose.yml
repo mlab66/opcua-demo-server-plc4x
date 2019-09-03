@@ -1,0 +1,14 @@
+version: '3.5'
+
+services:
+  opcua-server:
+    build:
+      context: .
+    ports:
+      - "4840:4840"
+    networks:
+      - elk
+networks:
+  elk:
+    external:
+      name: "elk"

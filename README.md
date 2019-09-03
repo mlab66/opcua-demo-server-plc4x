@@ -23,6 +23,9 @@ or with Docker:
     
     docker run -p 4840:4840 --network bridge demo_server:latest
 
+or: 
+    
+    docker-compose up
 ### License
 
 Apache 2.0

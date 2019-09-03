@@ -94,8 +94,8 @@ async def main():
 
             await ts_arm.set_value(now)
             await motor_degree_var.set_value(current_pos)
-            _logger.info('Set value of %s to %.1f', temp, count)
-            _logger.info('Arm Position of %s to %.1f', str(positive_direction), current_pos)
+            _logger.debug('Set value of %s to %.1f', temp, count)
+            _logger.debug('Arm Position of %s to %.1f', str(positive_direction), current_pos)
 
             if count == 10000:
                 count = 0
